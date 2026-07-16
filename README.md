@@ -2,6 +2,10 @@
 
 ESP · chams (walls) · aimbot (memory / silent / magic) · triggerbot · no recoil/spread · fly · speedhack · bhop · FOV circle — draggable menu, press **9**.
 
+Made in 2 days, so it's pretty crap — feel free to make it better.
+
+**Showcase:** https://youtu.be/gke70yu3fNA
+
 ![menu](menu.png)
 
 ## Notes

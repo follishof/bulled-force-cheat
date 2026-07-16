@@ -33,10 +33,6 @@ namespace BFEsp
 
         // weapon (best-effort)
         private bool _noRecoil, _noSpread, _unlimAmmo, _fastFire, _noFireDelay;
-        private bool _spoofName;       // override the username sent in the join AuthRequestBroadcast
-        private string _spoofNameText = "";
-        private static bool _sSpoofName;
-        private static string _sSpoofNameText = "";
         private float _fireMult = 2f;      // RPM multiplier
         private float _baseRPM = 0f;       // captured natural RPM
         private float _lastSetRPM = -1f;   // what we last wrote (to detect weapon switches)
@@ -84,7 +80,7 @@ namespace BFEsp
         private Rect _winEsp  = new Rect(30f, 516f, 330f, 300f);  // left column, below aimbot
         private Rect _winMove = new Rect(378f, 30f, 320f, 232f);  // right column, top
         private Rect _winGun  = new Rect(378f, 278f, 320f, 300f); // right column, below movement
-        private Rect _winMisc = new Rect(378f, 594f, 320f, 340f); // right column, below gun
+        private Rect _winMisc = new Rect(378f, 594f, 320f, 250f); // right column, below gun
         private KeyCode _menuKey = KeyCode.Alpha9;
         private bool _menuBindListening;
         private CursorLockMode _prevLock = CursorLockMode.Locked;   // cursor state before the menu opened
@@ -220,10 +216,6 @@ namespace BFEsp
                 LogSig(typeof(PlayerScript), "mpFinishReload");
                 LogSig(typeof(PlayerScript), "SetTotalAmmoForWeapon");
                 // ---- room-admin RPCs: exact call signatures for the host-auth test ----
-                // ---- username spoof: override the account name fed into the join broadcast ----
-                var lun = Find(typeof(AccountManager), "get_loggedInUsername");
-                if (lun != null) { HarmonyInstance.Patch(lun, prefix: HM(nameof(UsernamePrefix))); LoggerInstance.Msg("patched get_loggedInUsername"); }
-                else LoggerInstance.Warning("get_loggedInUsername not found");
                 // ---- hit-registration methods for true magic bullet ----
                 LogSig(typeof(PlayerScript), "FireBullet");
                 LogSig(typeof(PlayerScript), "FireOneShot");
@@ -248,14 +240,6 @@ namespace BFEsp
 
         // return false = skip the original ComputeShotRecoil = no recoil applied
         private static bool RecoilPrefix() { return !_sNoRecoil; }
-        // return the spoofed username instead of the real account name (skip original getter)
-        private static float _sUserLogT;
-        private static bool UsernamePrefix(ref string __result)
-        {
-            if (Time.time - _sUserLogT > 0.5f) { _sUserLogT = Time.time; MelonLogger.Msg("get_loggedInUsername READ  spoof=" + _sSpoofName + " text='" + _sSpoofNameText + "'"); }
-            if (_sSpoofName && !string.IsNullOrEmpty(_sSpoofNameText)) { __result = _sSpoofNameText; return false; }
-            return true;
-        }
 
         private static string NameOf(PlayerScript p) { try { return p == null ? "null" : ("'" + p.gameObject.name + "' mine=" + p.isMine); } catch { return "?"; } }
         private static float _sPhpT, _sHalpT, _sDpT;
@@ -469,13 +453,6 @@ namespace BFEsp
                 if (Input.GetKeyDown(KeyCode.F4)) { _scanFire = !_scanFire; LoggerInstance.Msg("fire-scan " + _scanFire); }
                 if (_menuOpen) { Cursor.lockState = CursorLockMode.None; Cursor.visible = true; }
                 _sMenuOpen = _menuOpen;
-                _sSpoofName = _spoofName; _sSpoofNameText = _spoofNameText;
-                // native code reads the username FIELD directly (getter never called) → overwrite the field itself
-                if (_spoofName && !string.IsNullOrEmpty(_spoofNameText))
-                {
-                    try { AccountManager.MDACNOEJJBL = _spoofNameText; }   // set_loggedInUsername
-                    catch (Exception e) { if (Time.time - _sUserLogT > 1f) { _sUserLogT = Time.time; LoggerInstance.Warning("spoof set: " + e.Message); } }
-                }
                 _sNoRecoil = _noRecoil; _sNoSpread = _noSpread; _sScanFire = _scanFire; _sAimMode = _aimMode; // feed the Harmony prefixes
                 { var pc = PickCamera(); if (pc != null) _sAimFwd = pc.transform.forward; }
 
@@ -1042,10 +1019,6 @@ namespace BFEsp
             if (GUILayout.Button(_espKeyListen ? "press any key..." : "ESP toggle: " + KeyName(_espKey))) _espKeyListen = true;
             if (GUILayout.Button(_aimToggleListen ? "press any key..." : "Aimbot toggle: " + KeyName(_aimToggleKey))) _aimToggleListen = true;
             if (GUILayout.Button(_flyKeyListen ? "press any key..." : "Fly toggle: " + KeyName(_flyKey))) _flyKeyListen = true;
-            GUILayout.Space(8f);
-            GUILayout.Label("-- name spoof (set, THEN join a room) --");
-            _spoofName = GUILayout.Toggle(_spoofName, " Spoof username");
-            _spoofNameText = GUILayout.TextField(_spoofNameText ?? "");
             GUILayout.Space(8f);
             if (GUILayout.Button("SAVE SETTINGS")) SaveCfg();
             if (GUILayout.Button("Close menu") && _menuOpen) ToggleMenu();

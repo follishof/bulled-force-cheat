@@ -5,9 +5,10 @@ ESP · chams (walls) · aimbot (memory / silent / magic) · triggerbot · no rec
 ![menu](menu.png)
 
 ## Notes
+- For the **Steam version** — `Build: 2026-06-25 23:32:39`.
 - Made as a **MelonLoader** IL2CPP mod. The logic also ports fine to a **standalone injector** or a **standalone cheat**.
 - **Source only, no DLL** — build it yourself.
-- For the **current build**. A game update is coming soon and **I will not be updating this**.
+- A game update is coming soon and **I will not be updating this**.
 
 ## Build
 1. Install **MelonLoader 0.7.3** (IL2CPP) on Bullet Force, launch once so it generates the assemblies.
